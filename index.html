@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Berufungsmomente – Entscheidungen im Berufungsverfahren</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --primary: #1a3a6e;
+  --primary-light: #2d5da8;
+  --accent: #d4890a;
+  --bg: #f2f5fb;
+  --card-bg: #ffffff;
+  --text: #1a1a2e;
+  --muted: #6c7a8d;
+  --border: #dce3f0;
+  --reveal-bg: #fffbf0;
+  --reveal-border: #f0c040;
+  --green: #1e7c45;
+  --green-bg: #edfaf3;
+  --orange: #8b3a00;
+  --orange-bg: #fff4eb;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 32px 16px;
+}
+
+#app { width: 100%; max-width: 740px; }
+
+.screen { display: none; }
+.screen.active { display: block; animation: fadeUp 0.35s ease; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Card ── */
+.card {
+  background: var(--card-bg);
+  border-radius: 20px;
+  padding: 44px 48px;
+  box-shadow: 0 2px 32px rgba(26,58,110,.10);
+}
+@media (max-width: 560px) { .card { padding: 28px 20px; } }
+
+/* ── Badges ── */
+.badge {
+  display: inline-block;
+  background: var(--primary);
+  color: white;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.badge-accent { background: var(--accent); }
+
+/* ── Typography ── */
+h1 {
+  font-size: 2.1rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--primary);
+  margin-bottom: 12px;
+}
+h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 10px;
+}
+h3 {
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+.lead {
+  font-size: 1.05rem;
+  color: var(--muted);
+  line-height: 1.65;
+  margin-bottom: 28px;
+}
+
+/* ── Intro stats ── */
+.stats-row {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.stat-box {
+  flex: 1;
+  background: var(--bg);
+  border-radius: 14px;
+  padding: 18px 12px;
+  text-align: center;
+}
+.stat-num { font-size: 1.9rem; font-weight: 800; color: var(--primary); }
+.stat-lbl { font-size: .78rem; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+
+/* ── Progress ── */
+.prog-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: .8rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.prog-track {
+  background: var(--border);
+  border-radius: 8px;
+  height: 6px;
+  overflow: hidden;
+  margin-bottom: 32px;
+}
+.prog-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--primary-light));
+  border-radius: 8px;
+  transition: width .5s ease;
+}
+
+/* ── Scenario context box ── */
+.context-box {
+  background: var(--bg);
+  border-left: 4px solid var(--primary);
+  border-radius: 0 10px 10px 0;
+  padding: 16px 20px;
+  font-size: .92rem;
+  line-height: 1.75;
+  margin-bottom: 24px;
+  color: var(--text);
+}
+
+/* ── Option buttons ── */
+.options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+.opt-btn {
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  padding: 15px 18px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .18s, background .18s, transform .12s;
+  font-size: .93rem;
+  font-family: inherit;
+  width: 100%;
+}
+.opt-btn:hover:not(:disabled) {
+  border-color: var(--primary-light);
+  background: #f0f4ff;
+  transform: translateY(-1px);
+}
+.opt-btn.chosen { border-color: var(--primary); background: #e6edff; }
+.opt-btn:disabled { cursor: default; }
+.opt-btn.chosen .opt-label::before { content: '✓ '; color: var(--primary); }
+.opt-label { font-weight: 700; color: var(--primary); }
+.opt-sub { font-size: .82rem; color: var(--muted); margin-top: 3px; }
+
+/* ── Saved answer confirmation ── */
+.answer-saved {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 16px;
+  font-size: .85rem;
+  color: var(--muted);
+  display: none;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+.answer-saved.show { display: flex; animation: fadeUp .25s ease; }
+
+/* ── Two-column doc cards ── */
+.doc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+@media (max-width: 520px) { .doc-grid { grid-template-columns: 1fr; } }
+.doc-card {
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  font-size: .85rem;
+  line-height: 1.65;
+  cursor: default;
+}
+.doc-card h5 {
+  font-size: .88rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── Slider ── */
+.slider-block { margin: 10px 0 20px; }
+.slider-lbl { font-size: .86rem; font-weight: 600; margin-bottom: 8px; }
+input[type=range] {
+  width: 100%;
+  accent-color: var(--primary);
+  margin: 8px 0;
+}
+.slider-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: .78rem;
+  color: var(--muted);
+}
+.slider-val { font-size: 1.15rem; font-weight: 700; color: var(--primary); }
+
+/* ── Debrief: your answer box ── */
+.your-answer-box {
+  background: var(--bg);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+}
+.your-answer-label {
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 6px;
+}
+.your-answer-text {
+  font-weight: 700;
+  color: var(--primary);
+  font-size: .93rem;
+}
+.your-answer-sub {
+  font-size: .8rem;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+/* ── Reveal box ── */
+.reveal-box {
+  background: var(--reveal-bg);
+  border: 1px solid var(--reveal-border);
+  border-radius: 14px;
+  padding: 24px 26px;
+}
+.reveal-box h4 { font-size: 1.05rem; font-weight: 700; color: #6b4200; margin-bottom: 8px; }
+.reveal-box p  { font-size: .88rem; line-height: 1.72; color: #4a3000; margin-bottom: 10px; }
+.reflect-box {
+  background: #fff9e8;
+  border-radius: 8px;
+  padding: 11px 14px;
+  font-size: .86rem;
+  font-style: italic;
+  color: #5a3d00;
+  margin-top: 10px;
+}
+.citation { font-size: .75rem; color: #8c6a20; font-style: italic; margin-top: 10px; }
+
+/* ── Awareness label ── */
+.awareness-label {
+  font-size: .83rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 8px;
+  display: inline-block;
+  margin-bottom: 14px;
+}
+.label-aware { background: var(--green-bg); color: var(--green); }
+.label-bias  { background: var(--orange-bg); color: var(--orange); }
+
+/* ── Buttons ── */
+.btn {
+  width: 100%;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 28px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .18s, transform .1s;
+  margin-top: 10px;
+}
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover:not(:disabled) { background: var(--primary-light); transform: translateY(-1px); }
+.btn-primary:disabled { background: #aab4c8; cursor: not-allowed; }
+.btn-outline {
+  background: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  width: auto;
+  padding: 10px 22px;
+  font-size: .9rem;
+}
+.btn-outline:hover:not(:disabled) { background: var(--bg); }
+.btn-outline:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ── Final screen ── */
+.score-circle {
+  width: 110px; height: 110px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  margin: 0 auto 22px;
+  color: white;
+}
+.score-big   { font-size: 2.6rem; font-weight: 800; line-height: 1; }
+.score-denom { font-size: .85rem; opacity: .8; }
+
+.tip-list { list-style: none; }
+.tip-list li {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: .88rem;
+  line-height: 1.65;
+}
+.tip-list li:last-child { border-bottom: none; }
+.tip-icon { font-size: 1.15rem; flex-shrink: 0; margin-top: 1px; }
+
+.bias-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: .88rem;
+}
+.bias-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--accent); flex-shrink: 0;
+}
+
+/* ── Scenario num badge ── */
+.scen-meta {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
+}
+.scen-num {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--primary); color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .82rem; font-weight: 700; flex-shrink: 0;
+}
+.scen-label { font-size: .8rem; color: var(--muted); font-weight: 600; letter-spacing: .3px; }
+
+hr.section { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+.disclaimer {
+  font-size: .75rem; color: var(--muted);
+  text-align: center; margin-top: 14px; line-height: 1.5;
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══════════════════════════════
+       INTRO SCREEN  –  kein "Bias"-Begriff
+  ══════════════════════════════ -->
+  <div id="s-intro" class="screen active">
+    <div class="card">
+      <div class="badge">Simulationsübung · Berufungsverfahren</div>
+      <h1>Berufungsmomente</h1>
+      <p class="lead">In Berufungsverfahren treffen wir viele kleine Entscheidungen – manche bewusst, viele automatisch. In dieser Übung begegnen Ihnen sechs realistische Situationen. Ihre Aufgabe: entscheiden. Was dahintersteckt, sehen Sie im Anschluss.</p>
+
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-num">6</div>
+          <div class="stat-lbl">Szenarien aus realen Berufungsverfahren</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num">≈ 8 Min</div>
+          <div class="stat-lbl">Zeitaufwand</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num">Keine</div>
+          <div class="stat-lbl">richtigen oder falschen Antworten</div>
+        </div>
+      </div>
+
+      <p style="font-size:.88rem;color:var(--muted);margin-bottom:28px;line-height:1.65;">
+        Antworten Sie so spontan und ehrlich wie möglich – so wie Sie es in einer echten Situation täten. Die Einordnung folgt gesammelt am Ende aller Szenarien.
+      </p>
+      <button class="btn btn-primary" onclick="startGame()">Jetzt starten →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       SCENARIO SCREEN  –  keine Reveals
+  ══════════════════════════════ -->
+  <div id="s-scenario" class="screen">
+    <div class="card">
+      <div class="prog-meta">
+        <span id="prog-label">Szenario 1 von 6</span>
+        <span id="prog-pct">0 %</span>
+      </div>
+      <div class="prog-track">
+        <div class="prog-fill" id="prog-fill" style="width:0%"></div>
+      </div>
+
+      <div id="scen-body"></div>
+      <div class="answer-saved" id="answer-saved">
+        <span>✓</span><span id="saved-text">Antwort gespeichert.</span>
+      </div>
+
+      <button class="btn btn-primary" id="next-btn" onclick="nextScene()" disabled style="margin-top:20px;">
+        Weiter →
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       DEBRIEF SCREEN  –  Reveals nach allen 6
+  ══════════════════════════════ -->
+  <div id="s-debrief" class="screen">
+    <div class="card">
+      <div class="prog-meta">
+        <span id="db-label">Auswertung 1 von 6</span>
+        <span id="db-pct">17 %</span>
+      </div>
+      <div class="prog-track">
+        <div class="prog-fill" id="db-fill" style="width:0%"></div>
+      </div>
+
+      <div id="debrief-body"></div>
+
+      <button class="btn btn-primary" id="db-next-btn" onclick="nextDebrief()" style="margin-top:24px;">
+        Nächste Auswertung →
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       FINAL SCREEN
+  ══════════════════════════════ -->
+  <div id="s-final" class="screen">
+    <div class="card">
+      <div style="text-align:center;margin-bottom:32px;">
+        <div class="badge">Zusammenfassung</div>
+        <h1 style="margin-top:10px;">Reflexion & Ausblick</h1>
+        <p class="lead">Sie haben sechs Entscheidungssituationen durchlaufen, in denen typische Muster unbewusster Wahrnehmung sichtbar werden – sogenannte Unconscious Biases.</p>
+      </div>
+
+      <div class="score-circle">
+        <div class="score-big" id="f-score">–</div>
+        <div class="score-denom">von 6</div>
+      </div>
+      <p style="text-align:center;font-size:.78rem;color:var(--muted);margin-bottom:6px;">Szenarien, in denen Sie das dominante Muster nicht gewählt haben</p>
+      <p id="f-msg" style="text-align:center;margin-bottom:32px;font-size:.97rem;line-height:1.65;color:var(--muted);"></p>
+
+      <p style="font-size:.82rem;color:var(--muted);margin-bottom:18px;line-height:1.6;padding:12px 16px;background:var(--bg);border-radius:10px;">
+        <strong style="color:var(--text);">Hinweis zur Einordnung:</strong> Diese Zahl ist kein Maß für Ihre persönliche Objektivität. Bias-Muster sind universell – sie entstehen durch kognitive Abkürzungen, nicht durch schlechten Willen. Wer sie kennt, kann ihnen strukturell begegnen.
+      </p>
+
+      <h2 style="margin-bottom:14px;">Begegnete Entscheidungsmuster</h2>
+      <div id="f-biases" style="margin-bottom:32px;"></div>
+
+      <hr class="section">
+
+      <h2 style="margin-bottom:14px;">Konkrete Maßnahmen für Berufungsverfahren</h2>
+      <ul class="tip-list">
+        <li><span class="tip-icon">📋</span><span><strong>Strukturierte Bewertungsbögen</strong> – Legen Sie Kriterien vor der Aktensichtung fest und bewerten alle Kandidat:innen nach derselben Rubrik. Das verhindert, dass erste Eindrücke spätere Urteile färben.</span></li>
+        <li><span class="tip-icon">🎭</span><span><strong>Anonymisierte Vorauswahl</strong> – Prüfen Sie Publikationslisten und Forschungsleistungen, bevor Namen, Fotos und Herkunftsinformationen sichtbar werden.</span></li>
+        <li><span class="tip-icon">👥</span><span><strong>Diverse Kommissionszusammensetzung</strong> – Unterschiedliche Perspektiven reduzieren individuelle Bias-Effekte. Mindestens eine Person aus der Gleichstellungskommission sollte beteiligt sein.</span></li>
+        <li><span class="tip-icon">⏸️</span><span><strong>Entscheidungspausen einbauen</strong> – Treffen Sie keine sofortigen Urteile nach dem Vortrag. Sofortentscheidungen spiegeln oft den Halo-Effekt wider, nicht die Forschungsqualität.</span></li>
+        <li><span class="tip-icon">🔤</span><span><strong>Ausschreibungssprache prüfen</strong> – Maskulin kodierte Stellenausschreibungen schrecken Bewerberinnen ab. Tools wie den Gender Decoder nutzen (genderdecoder.hhna.org).</span></li>
+        <li><span class="tip-icon">📌</span><span><strong>Elternzeit explizit schützen</strong> – Kommissionsbeschluss: Karrierelücken durch Elternzeit- oder Pflegezeit werden nicht als Nachteil gewertet und sind bei der Bewertung der Publikationsleistung zu kontextualisieren.</span></li>
+      </ul>
+
+      <div style="text-align:center;margin-top:36px;">
+        <button class="btn btn-primary" onclick="resetGame()" style="max-width:300px;">Neu starten</button>
+      </div>
+      <p class="disclaimer">Berufungsmomente · Digitales Selbstlern-Tool<br>
+      Hochschulbüro für ChancenVielfalt · Leibniz Universität Hannover</p>
+    </div>
+  </div>
+
+</div><!-- #app -->
+
+<script>
+/* ════════════════════════════════════════
+   SCENARIO DATA
+════════════════════════════════════════ */
+const SCENARIOS = [
+  {
+    id: 1,
+    type: 'choice',
+    biasName: 'Name-Bias / Herkunftsbias',
+    title: 'Zwei identische Bewerbungen?',
+    context: 'Sie sind Mitglied einer Berufungskommission für eine Juniorprofessur Soziologie. Sie erhalten zwei Bewerbungen mit identischen akademischen Profilen: jeweils 8 Peer-Review-Publikationen, h-Index 5, vergleichbare Lehrerfahrung, ein laufender Drittmittelantrag.',
+    question: 'Welche Bewerbung macht auf Sie spontan den stärkeren ersten Eindruck?',
+    options: [
+      { id:'A', label:'Dr. Michael Weber', sub:'Universität Münster · 8 Publ. · h-Index 5 · DFG-Antrag laufend' },
+      { id:'B', label:'Dr. Nilufar Rashidova', sub:'Universität Wien · 8 Publ. · h-Index 5 · DFG-Antrag laufend' },
+      { id:'N', label:'Kein wahrnehmbarer Unterschied', sub:'Beide Bewerbungen erscheinen mir gleichwertig' }
+    ],
+    neutral: 'N',
+    revealTitle: 'Name-Bias / Herkunftsbias',
+    revealText: 'Audit-Studien aus Deutschland zeigen: Identische Bewerbungen mit als "ausländisch" wahrgenommenen Namen erhalten signifikant seltener Einladungen zu Vorstellungsgesprächen. Kaas & Manger (2012) fanden in einem kontrollierten Feldexperiment, dass türkischstämmige Bewerber:innen etwa 1,5-mal so viele Bewerbungen versenden mussten wie Bewerber:innen mit deutschen Namen, um dieselbe Anzahl an Rückmeldungen zu erhalten. In der Wissenschaft rationalisiert sich dieser Effekt oft als Frage der "Passung".',
+    reflection: 'Welche Assoziationen hat der jeweilige Name bei Ihnen ausgelöst? Woher könnten diese stammen?',
+    citation: 'Kaas & Manger (2012), German Economic Review 13(1); Baert et al. (2015), ILR Review 68(3).'
+  },
+  {
+    id: 2,
+    type: 'slider',
+    biasName: 'Elternzeit- / Mutterschaftsbias',
+    title: 'Die Lücke im Lebenslauf',
+    context: 'Sie bewerten zwei CVs für eine W2-Professur. Beide Personen haben eine dreijährige Unterbrechung ihrer wissenschaftlichen Tätigkeit – mit unterschiedlicher Begründung. Die Publikationsliste danach ist identisch (je 12 Veröffentlichungen).',
+    docA: {
+      title: 'Kandidat:in A',
+      content: '2016 – 2017: Postdoc, Universität Bremen\n2017 – 2020: Elternzeit (zwei Kinder)\n2020 – heute: Wiss. Mitarbeit, Universität Hamburg\nPublikationen gesamt: 12'
+    },
+    docB: {
+      title: 'Kandidat:in B',
+      content: '2016 – 2017: Postdoc, Universität Bremen\n2017 – 2020: Forschungsaufenthalt, Univ. of Edinburgh (DAAD)\n2020 – heute: Wiss. Mitarbeit, Universität Hamburg\nPublikationen gesamt: 12'
+    },
+    question: 'Wie sehr sehen Sie die jeweilige Lücke als Nachteil für die Beurteilung der Forschungskontinuität?',
+    sliderMin: 'Kein Nachteil',
+    sliderMax: 'Deutlicher Nachteil',
+    revealTitle: 'Elternzeit- / Mutterschaftsbias',
+    revealText: 'Obwohl beide Lücken dieselbe Zeitspanne umfassen, werden Elternzeiten in akademischen Berufungsverfahren häufig als mangelndes Commitment interpretiert – Forschungsaufenthalte hingegen als karriereförderlich. Das benachteiligt strukturell Personen, die Familienarbeit geleistet haben. Nach § 2 Abs. 5 WissZeitVG sind Betreuungszeiten bei befristeten Verträgen zu berücksichtigen – analoge Sensibilität bei Berufungen ist Best Practice.',
+    reflection: 'Haben Sie Kandidat:in A strenger bewertet als B? Was würde diese Unterscheidung sachlich rechtfertigen?',
+    citation: 'Sheltzer & Smith (2014), PNAS 111(28); Williams, Phillips & Hall (2016), Journal of Research in Gender Studies 6(1).'
+  },
+  {
+    id: 3,
+    type: 'choice',
+    biasName: 'Halo-Effekt',
+    title: 'Nach dem Berufungsvortrag',
+    context: 'Zwei Kandidat:innen haben ihren Berufungsvortrag gehalten. Die Einschätzungen in der Pause: Über Kandidat:in A heißt es: "Phänomenaler Vortrag – absolut mitreißend, toll strukturiert." Über Kandidat:in B: "Solide, ein bisschen trocken, aber inhaltlich korrekt."',
+    question: 'Wie bewerten Sie intuitiv die wissenschaftliche Exzellenz beider Personen – allein aufgrund dieser Eindrücke?',
+    options: [
+      { id:'A', label:'Kandidat:in A erscheint wissenschaftlich stärker', sub:'Der überzeugende Auftritt lässt auf starke Forschung schließen' },
+      { id:'N', label:'Kein Rückschluss ohne Fakten möglich', sub:'Vortragsstil und Forschungsleistung sind nicht direkt verknüpft' },
+      { id:'C', label:'Kandidat:in B wirkt methodisch gründlicher', sub:'Inhaltliche Nüchternheit kann auf wissenschaftliche Stringenz hinweisen' }
+    ],
+    neutral: 'N',
+    revealTitle: 'Halo-Effekt',
+    revealText: 'Der Halo-Effekt beschreibt, wie eine herausragende Eigenschaft unsere Gesamtwahrnehmung einer Person färbt. Nisbett & Wilson (1977) belegten in einem Experiment, dass ein positiver Ersteindruck eines Dozenten die Bewertung unzusammenhängender Eigenschaften (Stimme, Akzent, Aussehen) signifikant verbesserte. Ambady & Rosenthal (1992) zeigten, dass kurze Verhaltensausschnitte ("thin slices") die Gesamtbeurteilung von Personen stark prägen – auch wenn sie keine Rückschlüsse auf andere Kompetenzen erlauben. Goldin & Rouse (2000) demonstrierten: Wenn Orchestermitglieder hinter einem Vorhang vorspielen, verdoppelt sich der Frauenanteil in den Auswahlen.',
+    reflection: 'Wie würden Sie den Einfluss des Vortragseindrucks auf Ihr Urteil zur Forschungsleistung einschätzen? Welche Strukturen könnten diesen Effekt abpuffern?',
+    citation: 'Nisbett & Wilson (1977), JPSP 35(4); Ambady & Rosenthal (1992), Psychological Bulletin 111(2); Goldin & Rouse (2000), AER 90(4).'
+  },
+  {
+    id: 4,
+    type: 'choice',
+    biasName: 'Affinity Bias / In-Group-Favorismus',
+    title: 'Das Netzwerk als Qualitätsmerkmal?',
+    context: 'Sie lesen zwei Bewerbungen für eine W3-Professur. Kandidat:in A studierte und promovierte an der LMU München – derselben Universität, an der drei der fünf Kommissionsmitglieder ausgebildet wurden. Kandidat:in B kommt von der Universität Łódź (Polen), Promotion an der Warwick University (UK). Forschungsprofile sind vergleichbar.',
+    question: 'Welche Person empfinden Sie spontan als "besser passend" für Ihr Institut?',
+    options: [
+      { id:'A', label:'Kandidat:in A (LMU) wirkt passender', sub:'Bekanntes akademisches Umfeld, vertraute wissenschaftliche Sozialisation' },
+      { id:'B', label:'Kandidat:in B (Łódź/Warwick) wirkt passender', sub:'Internationale Erfahrung und Außenperspektive als Mehrwert' },
+      { id:'N', label:'Passung ist keine Intuitionsfrage', sub:'Ich brauche inhaltliche Kriterien, nicht Herkunftsähnlichkeit' }
+    ],
+    neutral: 'N',
+    revealTitle: 'Affinity Bias / In-Group-Favorismus',
+    revealText: 'Affinity Bias beschreibt die Tendenz, Personen zu bevorzugen, die uns ähnlich sind – in Herkunft, Netzwerk oder Weltbild. In der Wissenschaft äußert sich das als "academic inbreeding": Alumni aus dem eigenen Umfeld werden bevorzugt, weil sie vertraut wirken, während Qualitätsnachweise unbewusst angepasst werden. Rivera (2012) zeigte für Eliteberufe, dass "Passung" oft als kulturelle Ähnlichkeit zur Entscheidungsgruppe operationalisiert wird – nicht als funktionale Eignung.',
+    reflection: 'Wo liegt für Sie die Grenze zwischen berechtigtem "institutionellem Fit" und unbewusstem In-Group-Favorismus?',
+    citation: 'Rivera (2012), American Sociological Review 77(6); Burris (2004), American Sociological Review 69(2).'
+  },
+  {
+    id: 5,
+    type: 'choice',
+    biasName: 'Altersbias (Ageism)',
+    title: 'Alter und Entwicklungspotenzial',
+    context: 'Sie beurteilen zwei Bewerbungen für eine W2-Professur. Die Forschungsprofile sind vergleichbar: je 15 Publikationen, ähnliche Drittmittelhistorie, vergleichbare Lehrerfahrung. Ein Unterschied fällt ins Auge: Kandidat:in A hat 2021 promoviert und ist seitdem als Postdoc tätig. Kandidat:in B hat 2009 promoviert, 2017 habilitiert und war zuletzt in mehreren Lehrstuhlvertretungen.',
+    question: 'Welcher Person schreiben Sie intuitiv höheres wissenschaftliches Entwicklungspotenzial zu?',
+    options: [
+      { id:'A', label:'Kandidat:in A hat mehr Entwicklungspotenzial', sub:'Frühe Karrierephase, offen für neue Richtungen, viel noch vor sich' },
+      { id:'B', label:'Kandidat:in B hat mehr Entwicklungspotenzial', sub:'Etablierte Netzwerke und Erfahrung ermöglichen größere wissenschaftliche Wirkung' },
+      { id:'N', label:'Potenzial lässt sich daraus nicht ableiten', sub:'Entwicklungspotenzial ist keine Funktion von Alter oder Karrieredauer' }
+    ],
+    neutral: 'N',
+    revealTitle: 'Altersbias (Ageism)',
+    revealText: 'Ageism – Diskriminierung aufgrund des Alters – ist im Hochschulkontext subtil, aber wirksam. Das Stereotype Content Model (Fiske et al., 2002) zeigt, dass ältere Personen als warm, aber weniger kompetent und weniger dynamisch wahrgenommen werden. In Berufungsverfahren äußert sich das als "Potenzial-Bias": Jüngere Kandidat:innen gelten als formbarer und innovativer – obwohl wissenschaftliche Kreativität keine lineare Funktion des Alters ist. Posthuma & Campion (2009) dokumentieren, wie robust diese Altersstereotype im Berufskontext sind, selbst wenn sie durch Leistungsdaten widerlegt werden. Ng & Feldman (2012) zeigen in einer Metaanalyse, dass sechs gängige negative Stereotype über ältere Arbeitnehmer:innen empirisch nicht haltbar sind.',
+    reflection: 'Haben Sie beim Lesen der Karriereverläufe spontan eine Vorstellung vom "Energieniveau" oder der "Formbarkeit" der Person entwickelt? Worauf basiert das?',
+    citation: 'Fiske, Cuddy, Glick & Xu (2002), JPSP 82(6); Posthuma & Campion (2009), Journal of Management 35(1); Ng & Feldman (2012), Personnel Psychology 65(4).'
+  },
+  {
+    id: 6,
+    type: 'choice',
+    biasName: 'Confirmation Bias',
+    title: 'Eine Favorit:in entsteht',
+    context: 'Nach der ersten Aktensichtung haben Sie eine leichte Präferenz für Kandidat:in A entwickelt. Jetzt beginnt die detaillierte Prüfungsphase. Sie haben drei Stunden Zeit, die engere Auswahl zu analysieren.',
+    question: 'Wie strukturieren Sie Ihre vertiefte Prüfung?',
+    options: [
+      { id:'A', label:'Ich prüfe Kandidat:in A besonders auf Stärken', sub:'Referenzen, Impactfaktoren, Netzwerke – ich möchte die Stärken untermauern' },
+      { id:'B', label:'Ich prüfe Kandidat:in A besonders auf Schwächen', sub:'Kritische Referenzen, Lücken, methodische Fragen – ich teste meine Präferenz' },
+      { id:'N', label:'Ich verwende dieselbe Checkliste für alle', sub:'Systematische, strukturgleiche Prüfung unabhängig vom Ersteindruck' }
+    ],
+    neutral: 'N',
+    revealTitle: 'Confirmation Bias',
+    revealText: 'Sobald wir eine Präferenz entwickelt haben, suchen wir unbewusst nach Informationen, die diese bestätigen – und gewichten Gegenbeweise geringer (Nickerson, 1998). Snyder & Swann (1978) zeigten in einem klassischen Experiment, dass Interviewende, die eine Hypothese über eine Person hatten, gezielt Fragen stellten, die diese Hypothese bestätigten – statt sie zu testen. Kahneman (2011) beschreibt den Mechanismus als "what you see is all there is" (WYSIATI): Wir urteilen auf Basis der verfügbaren Information, ohne systematisch nach Gegenevidenz zu suchen.',
+    reflection: 'Wie würde ein standardisierter, kriterienbasierter Bewertungsprozess diesen Effekt strukturell abschwächen?',
+    citation: 'Nickerson (1998), Review of General Psychology 2(2); Snyder & Swann (1978), JPSP 36(11); Kahneman (2011), Thinking, Fast and Slow.'
+  }
+];
+
+/* ════════════════════════════════════════
+   GAME STATE
+════════════════════════════════════════ */
+let cur = 0;
+let answers = [];
+let answered = false;
+let debriefCur = 0;
+
+/* ════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════ */
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function setProgress() {
+  const pct = Math.round(cur / SCENARIOS.length * 100);
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-label').textContent = 'Szenario ' + (cur + 1) + ' von ' + SCENARIOS.length;
+  document.getElementById('prog-pct').textContent = pct + ' %';
+}
+
+function calcAwareness() {
+  return answers.reduce((score, a, i) => {
+    const s = SCENARIOS[i];
+    if (s.type === 'slider') return score + (a.diff <= 0 ? 1 : 0);
+    return score + (a.selected === s.neutral ? 1 : 0);
+  }, 0);
+}
+
+/* ════════════════════════════════════════
+   RENDER SCENARIO  (no reveals)
+════════════════════════════════════════ */
+function renderScene() {
+  const s = SCENARIOS[cur];
+  answered = false;
+  setProgress();
+
+  const saved = document.getElementById('answer-saved');
+  saved.classList.remove('show');
+
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.disabled = true;
+  nextBtn.textContent = cur >= SCENARIOS.length - 1 ? 'Zur Auswertung →' : 'Weiter →';
+
+  let html = `
+    <div class="scen-meta">
+      <div class="scen-num">${s.id}</div>
+      <span class="scen-label">SZENARIO ${s.id} VON ${SCENARIOS.length}</span>
+    </div>
+    <h2>${s.title}</h2>
+    <div class="context-box">${s.context}</div>
+  `;
+
+  if (s.type === 'choice') {
+    html += `<h3>${s.question}</h3><div class="options">`;
+    s.options.forEach(o => {
+      html += `<button class="opt-btn" id="opt-${o.id}" onclick="chooseOption('${o.id}', this)">
+        <div class="opt-label">${o.label}</div>
+        <div class="opt-sub">${o.sub}</div>
+      </button>`;
+    });
+    html += `</div>`;
+  }
+  else if (s.type === 'slider') {
+    html += `
+      <div class="doc-grid">
+        <div class="doc-card">
+          <h5>${s.docA.title}</h5>
+          <pre style="font-family:inherit;white-space:pre-wrap;font-size:.84rem;line-height:1.6;">${s.docA.content}</pre>
+        </div>
+        <div class="doc-card">
+          <h5>${s.docB.title}</h5>
+          <pre style="font-family:inherit;white-space:pre-wrap;font-size:.84rem;line-height:1.6;">${s.docB.content}</pre>
+        </div>
+      </div>
+      <h3>${s.question}</h3>
+      <div class="slider-block">
+        <div class="slider-lbl">Kandidat:in A <em>(Elternzeit)</em></div>
+        <div class="slider-val" id="val-a">3</div>
+        <input type="range" id="sl-a" min="1" max="5" value="3" oninput="document.getElementById('val-a').textContent=this.value">
+        <div class="slider-meta"><span>${s.sliderMin}</span><span>${s.sliderMax}</span></div>
+      </div>
+      <div class="slider-block">
+        <div class="slider-lbl">Kandidat:in B <em>(Forschungsaufenthalt)</em></div>
+        <div class="slider-val" id="val-b">3</div>
+        <input type="range" id="sl-b" min="1" max="5" value="3" oninput="document.getElementById('val-b').textContent=this.value">
+        <div class="slider-meta"><span>${s.sliderMin}</span><span>${s.sliderMax}</span></div>
+      </div>
+      <button class="btn btn-outline" id="slider-confirm-btn" onclick="submitSlider()" style="margin-top:4px;">Einschätzung bestätigen</button>
+    `;
+  }
+  else if (s.type === 'docChoice') {
+    html += `
+      <div class="doc-grid" style="margin-bottom:20px;">
+        <div class="doc-card"><h5>${s.docA.title}</h5><p style="font-size:.85rem;line-height:1.65;font-style:italic;">${s.docA.content}</p></div>
+        <div class="doc-card"><h5>${s.docB.title}</h5><p style="font-size:.85rem;line-height:1.65;font-style:italic;">${s.docB.content}</p></div>
+      </div>
+      <h3>${s.question}</h3><div class="options">`;
+    s.options.forEach(o => {
+      html += `<button class="opt-btn" id="opt-${o.id}" onclick="chooseOption('${o.id}', this)">
+        <div class="opt-label">${o.label}</div>
+        <div class="opt-sub">${o.sub}</div>
+      </button>`;
+    });
+    html += `</div>`;
+  }
+
+  document.getElementById('scen-body').innerHTML = html;
+}
+
+/* ════════════════════════════════════════
+   INTERACTIONS  (silent – no reveals)
+════════════════════════════════════════ */
+function chooseOption(id, el) {
+  if (answered) return;
+  answered = true;
+  const s = SCENARIOS[cur];
+
+  document.querySelectorAll('.opt-btn').forEach(b => { b.disabled = true; });
+  el.classList.add('chosen');
+  answers.push({ selected: id });
+
+  const saved = document.getElementById('answer-saved');
+  document.getElementById('saved-text').textContent =
+    cur < SCENARIOS.length - 1
+      ? 'Antwort gespeichert. Weiter zum nächsten Szenario.'
+      : 'Letzte Antwort gespeichert. Jetzt zur Auswertung.';
+  saved.classList.add('show');
+
+  document.getElementById('next-btn').disabled = false;
+}
+
+function submitSlider() {
+  if (answered) return;
+  answered = true;
+  const a = parseInt(document.getElementById('sl-a').value);
+  const b = parseInt(document.getElementById('sl-b').value);
+  answers.push({ valueA: a, valueB: b, diff: a - b });
+
+  document.getElementById('slider-confirm-btn').disabled = true;
+  document.getElementById('sl-a').disabled = true;
+  document.getElementById('sl-b').disabled = true;
+
+  const saved = document.getElementById('answer-saved');
+  document.getElementById('saved-text').textContent =
+    cur < SCENARIOS.length - 1
+      ? 'Einschätzung gespeichert. Weiter zum nächsten Szenario.'
+      : 'Letzte Einschätzung gespeichert. Jetzt zur Auswertung.';
+  saved.classList.add('show');
+
+  document.getElementById('next-btn').disabled = false;
+}
+
+/* ════════════════════════════════════════
+   NAVIGATION
+════════════════════════════════════════ */
+function startGame() {
+  cur = 0; answers = []; answered = false;
+  show('s-scenario');
+  renderScene();
+}
+
+function nextScene() {
+  cur++;
+  if (cur >= SCENARIOS.length) {
+    debriefCur = 0;
+    show('s-debrief');
+    renderDebrief();
+  } else {
+    renderScene();
+  }
+}
+
+/* ════════════════════════════════════════
+   DEBRIEF PHASE  (all reveals after all answers)
+════════════════════════════════════════ */
+function renderDebrief() {
+  const s = SCENARIOS[debriefCur];
+  const a = answers[debriefCur];
+
+  // Progress
+  const pct = Math.round((debriefCur + 1) / SCENARIOS.length * 100);
+  document.getElementById('db-fill').style.width = pct + '%';
+  document.getElementById('db-label').textContent = 'Auswertung ' + (debriefCur + 1) + ' von ' + SCENARIOS.length;
+  document.getElementById('db-pct').textContent = pct + ' %';
+
+  // Was the answer the neutral/aware one?
+  let isAware = false;
+  let answerDisplay = '';
+  let answerSub = '';
+
+  if (s.type === 'slider') {
+    isAware = a.diff <= 0;
+    answerDisplay = `Kandidat:in A (Elternzeit): ${a.valueA}/5 · Kandidat:in B (Forschungsaufenthalt): ${a.valueB}/5`;
+    answerSub = a.diff > 0 ? 'Elternzeit als größerer Nachteil bewertet' : 'Beide Lücken gleich oder A günstiger bewertet';
+  } else {
+    const chosen = s.options.find(o => o.id === a.selected);
+    isAware = a.selected === s.neutral;
+    answerDisplay = chosen.label;
+    answerSub = chosen.sub;
+  }
+
+  const awareHtml = isAware
+    ? `<div class="awareness-label label-aware">✓ Kein dominantes Muster – gut erkannt.</div>`
+    : `<div class="awareness-label label-bias">Ihr Urteil folgt einem verbreiteten Muster – das ist menschlich und normal.</div>`;
+
+  document.getElementById('debrief-body').innerHTML = `
+    <div class="scen-meta">
+      <div class="scen-num">${s.id}</div>
+      <span class="scen-label">SZENARIO ${s.id} · ${s.title.toUpperCase()}</span>
+    </div>
+    <h2>${s.title}</h2>
+
+    <div class="your-answer-box">
+      <div class="your-answer-label">Ihre Antwort</div>
+      <div class="your-answer-text">${answerDisplay}</div>
+      <div class="your-answer-sub">${answerSub}</div>
+    </div>
+
+    <div class="reveal-box">
+      ${awareHtml}
+      <div class="badge badge-accent" style="margin-top:4px;">Was steckt dahinter?</div>
+      <h4 style="margin-top:10px;">${s.revealTitle}</h4>
+      <p>${s.revealText}</p>
+      <div class="reflect-box">💭 <strong>Reflexionsfrage:</strong> ${s.reflection}</div>
+      <p class="citation">Quellen: ${s.citation}</p>
+    </div>
+  `;
+
+  const isLast = debriefCur >= SCENARIOS.length - 1;
+  document.getElementById('db-next-btn').textContent = isLast ? 'Zur Zusammenfassung →' : 'Nächste Auswertung →';
+}
+
+function nextDebrief() {
+  debriefCur++;
+  if (debriefCur >= SCENARIOS.length) {
+    showFinal();
+  } else {
+    renderDebrief();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+/* ════════════════════════════════════════
+   FINAL SCREEN
+════════════════════════════════════════ */
+function showFinal() {
+  show('s-final');
+  const awareness = calcAwareness();
+  document.getElementById('f-score').textContent = awareness;
+
+  const msgs = [
+    'Viele der gezeigten Muster sind tief in menschlicher Wahrnehmung verankert – auch bei Menschen mit besten Absichten. Struktur schützt dort, wo Bewusstsein allein nicht reicht.',
+    'Sie haben einige Muster erkannt. Reflexionsfähigkeit ist der erste Schritt – strukturelle Absicherungen im Verfahren sind der zweite.',
+    'Sie haben die meisten Muster bewusst wahrgenommen. Wichtig: Auch wer Biases kennt, kann ihnen unterliegen. Deshalb bleibt Prozessgestaltung entscheidend.'
+  ];
+  document.getElementById('f-msg').textContent = msgs[awareness <= 2 ? 0 : awareness <= 4 ? 1 : 2];
+
+  document.getElementById('f-biases').innerHTML =
+    SCENARIOS.map(s => `
+      <div class="bias-item">
+        <div class="bias-dot"></div>
+        <div>
+          <strong>${s.biasName}</strong>
+          <span style="font-size:.8rem;color:var(--muted);margin-left:8px;">(Szenario ${s.id}: ${s.title})</span>
+        </div>
+      </div>`).join('');
+}
+
+function resetGame() {
+  cur = 0; answers = []; answered = false; debriefCur = 0;
+  show('s-intro');
+}
+</script>
+</body>
+</html>
