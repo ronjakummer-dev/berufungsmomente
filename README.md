@@ -1,4 +1,3 @@
-[README.md](https://github.com/user-attachments/files/26748690/README.md)
 # Berufungsmomente
 
 **Interaktives Selbstlern-Tool zur Reflexion unbewusster Entscheidungsmuster in Berufungsverfahren**
